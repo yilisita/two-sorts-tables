@@ -1,0 +1,69 @@
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"Args":["CreateMyAsset", "user1", "1", "12", "[100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100]"]}' -n private
+
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"Args":["CreateMyAsset", "user2", "2", "12", "[1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000]"]}' -n private
+
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"Args":["CreateAccount"]}' -n account
+
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"Args":["InitIdCounter"]}' -n stateGrid
+
+
+
+
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"Args":["SendRequest", "1", "6", "[1]", "12", "today"]}' -n private
+
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"Args":["InsertStudent", "1181000217","温家俊","M"]}' -n private
+
+peer chaincode query -C mychannel -n basic -c '{"Args":["HandleRequest"]}' -n private
+
+peer chaincode query -C mychannel -n basic -c '{"Args":["ReadRequest"]}' -n private
+
+peer chaincode query -C mychannel -n basic -c '{"Args":["GetAttributeTotal","1","1"]}' -n private
+
+[{"ID":"1","Proposal":"6月所有地区的发电量","RequestTime":"today","Amount":1000},{"ID":"2","Proposal":"0获得这个月所有地区的发电量","RequestTime":"today","Amount":1100}]
+
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"Args":["SendResponse", "[{\"ID\":\"1\",\"Proposal\":\"6月所有地区的发电量\",\"RequestTime\":\"today\",\"Amount\":1000},{"ID":"2","Proposal":"0获得这个月所有地区的发电量","RequestTime":"today","Amount":1100}]"]}' -n private
+
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"Args":["SendResponse", "[{\"ID\":\"1\",\"Proposal\":\"6月所有地区的发电量\",\"RequestTime\":\"today\",\"Amount\":1000},{\"ID\":\"2\",\"Proposal\":\"0获得这个月所有地区的发电量\",\"RequestTime\":\"today\",\"Amount\":1100}]"]}' -n private
+
+################################################
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"Args":["InsertATable", "{\"id\":\"1\",\"area\":\"黑河\",\"year\":\"2022\",\"month\":\"12\",\"columns\":[\"列1\",\"列2\"],\"data\":[[1,2,3],[10,20,30],[100,200,300]],\"label\":[\"Ob1\",\"Ob2\",\"Ob3\"],\"table_type\":\"0\"}"]}' -n private3
+
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"Args":["InsertATable", "{\"id\":\"1\",\"area\":\"哈尔滨\",\"year\":\"2022\",\"month\":\"12\",\"columns\":[\"列1\",\"列2\"],\"data\":[[1,2,3],[10,20,30],[100,200,300]],\"label\":[\"Ob1\",\"Ob2\",\"Ob3\"],\"table_type\":\"1\"}"]}' -n private3
+
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"Args":["SendReport", "[{\"id\":\"1\",\"req_id\":\"REQ-2\",\"target_table\":{\"id\":\"\",\"area\":\"哈尔滨\",\"year\":\"2022\",\"month\":\"12\",\"columns\":[\"列1\",\"列2\"],\"num_of_obs\":3,\"table_type\":\"1\",\"label\":[\"Ob1\",\"Ob2\",\"Ob3\"]},\"service\":\"获取指标具体数值\",\"result\":20,\"description\":\"目标表格: 2022 年 12 月 哈尔滨 地区 电力生产明细表; 目标属性: 列2; 计算服务: 获取指标具体数值; 指标代码: 001; 指标名称: 全社会用电总计\",\"res_type\":\"0\"}]"]}' -n private3
+
+
+
+#### SendRequest ####
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"Args":["SendRequest", "{\"id\":\"REQ-1\",\"req_type\":\"2\",\"demander\":\"Org2MSP\",\"target_table_id\":\"1\",\"service\":1,\"request_time\":\"2022-06-27 21:48\",\"state\":0}"]}' -n private3
+
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"Args":["SendRequest", "{\"id\":\"REQ-1\",\"req_type\":\"1\",\"demander\":\"Org2MSP\",\"target_table_id\":\"0\",\"service\":0,\"request_time\":\"2022-06-27 21:48\",\"state\":0,\"attribute_id\":1,\"index_code\":1}"]}' -n private3
+
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"Args":["SendRequest", "{\"id\":\"REQ-1\",\"req_type\":\"0\",\"demander\":\"Org2MSP\",\"target_table_id\":\"1\",\"service\":2,\"request_time\":\"2022-06-27 21:48\",\"state\":0,\"attribute_id\":1,\"index_code\":1}"]}' -n private3
+
+
+peer chaincode query -C mychannel -n basic -c '{"Args":["ReadAllRequest"]}' -n private2
+
+peer chaincode query -C mychannel -n basic -c '{"Args":["ReadReport", "1"]}' -n private
+
+peer chaincode query -C mychannel -n basic -c '{"Args":["ReadAllPublicTable"]}' -n private2
+
+peer chaincode query -C mychannel -n basic -c '{"Args":["GetAllRequests"]}' -n private2
+
+peer chaincode query -C mychannel -n basic -c '{"Args":["HandleSingle", "REQ-1"]}' -n private2
+
+export CORE_PEER_TLS_ENABLED=true
+export CORE_PEER_LOCALMSPID="Org2MSP"
+export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt
+export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp
+export CORE_PEER_ADDRESS=localhost:9051
+
+export CORE_PEER_TLS_ENABLED=true
+export CORE_PEER_LOCALMSPID="Org1MSP"
+export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
+export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
+export CORE_PEER_ADDRESS=localhost:7051
+
+需要改进的地方：
+ 1、插入相同id的数据、请求，必须提示不能插入，主键重复
+ 2、按照月份求数据会少算一部分。
