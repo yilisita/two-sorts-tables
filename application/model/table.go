@@ -2,7 +2,7 @@
  * @Author: Wen Jiajun
  * @Date: 2022-06-29 20:25:11
  * @LastEditors: Wen Jiajun
- * @LastEditTime: 2022-06-30 17:08:10
+ * @LastEditTime: 2022-07-01 22:13:03
  * @FilePath: \application\model\table.go
  * @Description:
  */
@@ -11,6 +11,7 @@ package model
 import (
 	e "app/error"
 	"encoding/json"
+	"log"
 	"strconv"
 )
 
@@ -43,17 +44,17 @@ func InsertATable(t *Table) (int, error) {
 	}
 	res, err := Contract.SubmitTransaction("InsertATable", string(tJSON))
 	if err != nil {
-		return -1, err
+		return -1, e.TX_SUBMITION_ERROR
 	}
 
 	id, _ := strconv.Atoi(string(res))
-	return id, nil
+	return id, e.SUCCESS
 }
 
 func ReadPublicTableByID(id string) (*PublicTable, error) {
 	res, err := Contract.EvaluateTransaction("ReadPublicTableByID", id)
 	if err != nil {
-		return nil, err
+		return nil, e.TX_EVALUATION_ERROR
 	}
 
 	var resTable PublicTable
@@ -62,13 +63,13 @@ func ReadPublicTableByID(id string) (*PublicTable, error) {
 		return nil, e.JSON_PARSE_ERROR
 	}
 
-	return &resTable, nil
+	return &resTable, e.SUCCESS
 }
 
 func ReadAllPublicTable() ([]*PublicTable, error) {
 	res, err := Contract.EvaluateTransaction("ReadAllPublicTable")
 	if err != nil {
-		return nil, err
+		return nil, e.TX_EVALUATION_ERROR
 	}
 
 	var resTable []*PublicTable
@@ -77,19 +78,36 @@ func ReadAllPublicTable() ([]*PublicTable, error) {
 		return nil, e.JSON_PARSE_ERROR
 	}
 
-	return resTable, nil
+	return resTable, e.SUCCESS
 }
 
 func ReadMyTableByID(tableID string) (*Table, error) {
 	res, err := Contract.EvaluateTransaction("ReadMyTableByID", tableID)
 	if err != nil {
-		return nil, err
+		return nil, e.TX_EVALUATION_ERROR
 	}
 
 	var resTable Table
 	err = json.Unmarshal(res, &resTable)
 	if err != nil {
-		return nil, err
+		return nil, e.JSON_PARSE_ERROR
 	}
-	return &resTable, nil
+	return &resTable, e.SUCCESS
+}
+
+func GetAllTable() ([]*Table, error) {
+	res, err := Contract.EvaluateTransaction("GetAllTable")
+	if err != nil {
+		log.Println(err)
+		return nil, e.TX_EVALUATION_ERROR
+	}
+
+	var resTable []*Table
+	err = json.Unmarshal(res, &resTable)
+	if err != nil {
+		log.Println(err)
+		return nil, e.JSON_PARSE_ERROR
+	}
+
+	return resTable, e.SUCCESS
 }

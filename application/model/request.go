@@ -2,13 +2,17 @@
  * @Author: Wen Jiajun
  * @Date: 2022-06-30 00:07:29
  * @LastEditors: Wen Jiajun
- * @LastEditTime: 2022-06-30 00:20:11
+ * @LastEditTime: 2022-07-01 22:04:54
  * @FilePath: \application\model\request.go
  * @Description:
  */
 package model
 
-import "encoding/json"
+import (
+	e "app/error"
+	"encoding/json"
+	"log"
+)
 
 const REQ = "REQ-"
 
@@ -40,10 +44,11 @@ type TableRequest struct {
 func SendRequest(reqStr string) (string, error) {
 	res, err := Contract.SubmitTransaction("SendRequest", reqStr)
 	if err != nil {
-		return "", err
+		log.Println(err)
+		return "", e.TX_SUBMITION_ERROR
 	}
 
-	return string(res), nil
+	return string(res), e.SUCCESS
 }
 
 func newReqID(id string) string {
@@ -65,12 +70,14 @@ type RequestView struct {
 func ReadAllRequest() ([]RequestView, error) {
 	res, err := Contract.EvaluateTransaction("ReadAllRequest")
 	if err != nil {
-		return nil, err
+		log.Println(err)
+		return nil, e.TX_EVALUATION_ERROR
 	}
 	var resReq []RequestView
 	err = json.Unmarshal(res, &resReq)
 	if err != nil {
-		return nil, err
+		log.Println(err)
+		return nil, e.JSON_PARSE_ERROR
 	}
 	return resReq, nil
 }
@@ -78,10 +85,11 @@ func ReadAllRequest() ([]RequestView, error) {
 func HandleAll() (string, error) {
 	res, err := Contract.EvaluateTransaction("HandleAll")
 	if err != nil {
-		return "", err
+		log.Println(err)
+		return "", e.TX_EVALUATION_ERROR
 	}
 
-	return string(res), nil
+	return string(res), e.SUCCESS
 }
 
 func jsonSlice(s string) string {
@@ -92,19 +100,29 @@ func HandleSingle(id string) (string, error) {
 	rid := newReqID(id)
 	res, err := Contract.EvaluateTransaction("HandleSingle", rid)
 	if err != nil {
-		return "", err
+		log.Println(err)
+		return "", e.TX_EVALUATION_ERROR
 	}
 
-	return jsonSlice(string(res)), nil
+	return jsonSlice(string(res)), e.SUCCESS
 }
 
 func SendReport(repStr string) error {
 	_, err := Contract.SubmitTransaction("SendReport", repStr)
-	return err
+	if err != nil {
+		log.Println(err)
+		return e.TX_SUBMITION_ERROR
+	}
+	return e.SUCCESS
 }
 
 func RefuseRequest(id string) error {
 	rid := newReqID(id)
 	_, err := Contract.SubmitTransaction("RefuseRequest", rid)
-	return err
+	if err != nil {
+		log.Println(err)
+		return e.TX_SUBMITION_ERROR
+	}
+
+	return e.SUCCESS
 }

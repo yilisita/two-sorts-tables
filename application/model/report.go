@@ -2,13 +2,17 @@
  * @Author: Wen Jiajun
  * @Date: 2022-06-30 00:22:17
  * @LastEditors: Wen Jiajun
- * @LastEditTime: 2022-06-30 15:51:10
+ * @LastEditTime: 2022-07-01 22:10:03
  * @FilePath: \application\model\report.go
  * @Description:
  */
 package model
 
-import "encoding/json"
+import (
+	e "app/error"
+	"encoding/json"
+	"log"
+)
 
 type AttributeRes struct {
 	ID          string      `json:"id"`
@@ -53,29 +57,30 @@ type PublicTableView struct {
 func GetAllReports() ([]AttributeResView, error) {
 	res, err := Contract.EvaluateTransaction("GetAllReports")
 	if err != nil {
-		return nil, err
+		log.Println(err)
+		return nil, e.TX_EVALUATION_ERROR
 	}
 
 	var resRep []AttributeResView
 	err = json.Unmarshal(res, &resRep)
 	if err != nil {
-		return nil, err
+		return nil, e.JSON_PARSE_ERROR
 	}
 
-	return resRep, nil
+	return resRep, e.SUCCESS
 }
 
 func ReadPurchasedTable() ([]*Table, error) {
 	res, err := Contract.EvaluateTransaction("GetAllReports")
 	if err != nil {
-		return nil, err
+		return nil, e.TX_EVALUATION_ERROR
 	}
 
 	var resRep []*Table
 	err = json.Unmarshal(res, &resRep)
 	if err != nil {
-		return nil, err
+		return nil, e.JSON_PARSE_ERROR
 	}
 
-	return resRep, nil
+	return resRep, e.SUCCESS
 }

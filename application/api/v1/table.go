@@ -2,7 +2,7 @@
  * @Author: Wen Jiajun
  * @Date: 2022-06-30 12:52:28
  * @LastEditors: Wen Jiajun
- * @LastEditTime: 2022-06-30 17:11:07
+ * @LastEditTime: 2022-07-01 23:30:52
  * @FilePath: \application\api\v1\table.go
  * @Description:
  */
@@ -12,12 +12,10 @@ import (
 	"app/model"
 	"app/utils"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/xuri/excelize/v2"
 )
 
 // type Table struct {
@@ -36,10 +34,11 @@ const (
 	prod string = "1"
 )
 
+// POST
 func InsertATable(c *gin.Context) {
 	// Parse description
 	tType := c.PostForm("table_type")
-	fmt.Println("Description:", tType)
+	fmt.Println("table_type:", tType)
 
 	// Parse file
 	file, fileHeader, err := c.Request.FormFile("file")
@@ -56,6 +55,8 @@ func InsertATable(c *gin.Context) {
 		tables = utils.FormatProdFile(file)
 	}
 
+	fmt.Println(tables)
+
 	var ids []int
 	for i := range tables {
 		id, err := model.InsertATable(tables[i])
@@ -69,28 +70,35 @@ func InsertATable(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "长传成功",
+		"message": "上传成功",
 		"status":  200,
 		"data":    ids,
 	})
 }
 
-func formatFile(r io.Reader) {
-	file, err := excelize.OpenReader(r)
-	if err != nil {
-		log.Println(err)
-		return
-	}
+func GetAllTable(c *gin.Context) {
+	tables, err := model.GetAllTable()
+	fmt.Println(tables)
+	c.JSON(http.StatusOK, utils.NewRes(err).WithData(tables)) // [Object Object]
+}
 
-	sheets := file.GetSheetList()
-	for _, s := range sheets {
-		cols, err := file.GetCols(s)
-		if err != nil {
-			log.Println(err)
-			return
-		}
+func ReadMyTableByID(c *gin.Context) {
+	id := c.Param("id")
+	table, err := model.ReadMyTableByID(id)
+	fmt.Println(table)
+	c.JSON(http.StatusOK, utils.NewRes(err).WithData(table))
+}
 
-		fmt.Println(cols)
-		return
-	}
+func ReadAllPublicTable(c *gin.Context) {
+	tables, err := model.ReadAllPublicTable()
+	fmt.Println(tables)
+	c.JSON(http.StatusOK, utils.NewRes(err).WithData(tables))
+
+}
+
+func ReadPublicTableByID(c *gin.Context) {
+	id := c.Param("id")
+	table, err := model.ReadPublicTableByID(id)
+	fmt.Println(table)
+	c.JSON(http.StatusOK, utils.NewRes(err).WithData(table))
 }

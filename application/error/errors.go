@@ -2,24 +2,26 @@
  * @Author: Wen Jiajun
  * @Date: 2022-03-25 16:31:39
  * @LastEditors: Wen Jiajun
- * @LastEditTime: 2022-06-29 23:44:47
+ * @LastEditTime: 2022-07-01 22:01:47
  * @FilePath: \application\error\errors.go
  * @Description:
  */
 
 package error
 
-const SUCCESS ErrorCode = 200
+type ErrCode uint
+
+const SUCCESS ErrCode = 200
 
 const (
-	JSON_PARSE_ERROR ErrorCode = 500 + iota*10
+	JSON_PARSE_ERROR ErrCode = 500 + iota*10
 	TX_SUBMITION_ERROR
 	TX_EVALUATION_ERROR
 	WALLET_CREATION_ERROR
 )
 
 const (
-	REQ_NOT_EXIST ErrorCode = 30000 + iota*1000
+	REQ_NOT_EXIST ErrCode = 30000 + iota*1000
 	TABLE_NOT_EXIST
 	RES_NOT_EXIST
 	NO_REQ
@@ -27,33 +29,40 @@ const (
 	NO_RES
 )
 const (
-	FILE_PARSE_ERROR ErrorCode = 1000 + iota*100
+	FILE_PARSE_ERROR ErrCode = 1000 + iota*100
 	READ_EXCEL_ERROR
 )
 
 const (
-	ADD_KEY_ERROR ErrorCode = 3000 + iota*1000
+	ADD_KEY_ERROR ErrCode = 3000 + iota*1000
 	DELETE_KEY_ERROR
 	QUERY_KEY_ERROR
 )
 
-type ErrorCode uint
-
-func (e ErrorCode) Error() string {
-	return GetErrMsg(e)
+type Error struct {
+	E    error
+	Code uint
 }
 
-func (e ErrorCode) Code() uint {
+func (e ErrCode) Error() string {
+	return errCodeMsg[e]
+}
+
+func (e ErrCode) Code() uint {
 	return uint(e)
 }
 
-func (e ErrorCode) IsErr(i ErrorCode) bool {
+func (e Error) ErrCode() uint {
+	return e.Code
+}
+
+func (e Error) IsErr(i Error) bool {
 	return e == i
 }
 
-var errCodeMsg = map[ErrorCode]string{
+var errCodeMsg = map[ErrCode]string{
 	SUCCESS:               "成功",
-	JSON_PARSE_ERROR:      "JSON对象处理错误，请联系管理员",
+	JSON_PARSE_ERROR:      "JSON对象解析错误，请联系管理员",
 	TX_SUBMITION_ERROR:    "提交交易失败，请联系管理员",
 	TX_EVALUATION_ERROR:   "评估交易失败，请联系管理员",
 	WALLET_CREATION_ERROR: "钱包创建失败，请联系管理员",
@@ -70,6 +79,13 @@ var errCodeMsg = map[ErrorCode]string{
 	NO_RES:                "当前无数据报告",
 }
 
-func GetErrMsg(e ErrorCode) string {
-	return errCodeMsg[e]
+func GetErrMsg(e uint) string {
+	return errCodeMsg[ErrCode(e)]
+}
+
+func NewErr(e error, i uint) Error {
+	if e == nil {
+		return Error{nil, i}
+	}
+	return Error{e, i}
 }

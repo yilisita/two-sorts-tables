@@ -2,7 +2,7 @@
  * @Author: Wen Jiajun
  * @Date: 2022-03-25 15:43:26
  * @LastEditors: Wen Jiajun
- * @LastEditTime: 2022-06-30 16:58:26
+ * @LastEditTime: 2022-07-01 23:26:59
  * @FilePath: \application\main.go
  * @Description:
  */
@@ -11,13 +11,12 @@ package main
 
 import (
 	// "log"
-	// "seller-app/model"
+	//"seller-app/model"
 	// "seller-app/router"
 	"app/model"
-	"fmt"
+	"app/router"
 	"io"
 	"log"
-	"os"
 	"strconv"
 	"strings"
 
@@ -25,14 +24,10 @@ import (
 )
 
 func main() {
+	model.InitFabric()
+	app := router.InitRouter()
 
-	wd, _ := os.Getwd()
-	r, _ := os.Open(wd + "/api/v1/ecws.xlsx")
-	t := formatEcwsFile(r)
-	for _, v := range t {
-		fmt.Println(v)
-	}
-
+	app.Run(":4000")
 }
 
 // type Table struct {
