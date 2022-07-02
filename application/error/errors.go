@@ -2,7 +2,7 @@
  * @Author: Wen Jiajun
  * @Date: 2022-03-25 16:31:39
  * @LastEditors: Wen Jiajun
- * @LastEditTime: 2022-07-01 22:01:47
+ * @LastEditTime: 2022-07-02 14:21:20
  * @FilePath: \application\error\errors.go
  * @Description:
  */
@@ -17,6 +17,7 @@ const (
 	JSON_PARSE_ERROR ErrCode = 500 + iota*10
 	TX_SUBMITION_ERROR
 	TX_EVALUATION_ERROR
+	TX_CREATION_ERROR
 	WALLET_CREATION_ERROR
 )
 
@@ -77,6 +78,7 @@ var errCodeMsg = map[ErrCode]string{
 	NO_REQ:                "当前无请求",
 	NO_TABLE:              "当前无表格",
 	NO_RES:                "当前无数据报告",
+	TX_CREATION_ERROR:     "创建交易失败",
 }
 
 func GetErrMsg(e uint) string {

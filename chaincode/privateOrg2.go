@@ -9,6 +9,7 @@ import (
 
 type Report interface {
 	GetReqID() string
+	GetID() string
 }
 
 // 数据提供方返回响应的结构
@@ -75,6 +76,7 @@ func NewAttributeResView(r AttributeRes) *AttributeResView {
 		ResTypeStr:  reqTypeMapper[r.ResType],
 	}
 }
+
 func (a AttributeRes) GetReqID() string {
 	return a.ReqID
 }
@@ -83,8 +85,15 @@ func (t TableRes) GetReqID() string {
 	return t.ReqID
 }
 
+func (a AttributeRes) GetID() string {
+	return a.ID
+}
+
+func (t TableRes) GetID() string {
+	return t.ID
+}
+
 var org2Collection = "Org2PrivateCollection"
-var resID = 1
 
 func (s *SmartContract) createReport(ctx contractapi.TransactionContextInterface, rep Report) (string, error) {
 	responseJSON, err := json.Marshal(rep)
@@ -92,12 +101,12 @@ func (s *SmartContract) createReport(ctx contractapi.TransactionContextInterface
 		return "", err
 	}
 
-	err = ctx.GetStub().PutPrivateData(org2Collection, fmt.Sprint(resID), responseJSON)
+	err = ctx.GetStub().PutPrivateData(org2Collection, rep.GetID(), responseJSON)
 	if err != nil {
 		return "", err
 	}
-	resID++
-	return fmt.Sprint(resID - 1), nil
+
+	return rep.GetID(), nil
 }
 
 // ReadAsset returns the asset stored in the world state with given id.

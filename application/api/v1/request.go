@@ -2,7 +2,7 @@
  * @Author: Wen Jiajun
  * @Date: 2022-07-01 22:47:28
  * @LastEditors: Wen Jiajun
- * @LastEditTime: 2022-07-01 23:09:17
+ * @LastEditTime: 2022-07-02 14:51:20
  * @FilePath: \application\api\v1\request.go
  * @Description:
  */
@@ -27,13 +27,27 @@ func ReadAllRequest(c *gin.Context) {
 	c.JSON(http.StatusOK, utils.NewRes(err).WithData(reqs))
 }
 
+// type BasicRequest struct {
+// 	ID            string `json:"id"`
+// 	ReqType       string `json:"req_type"`  1
+// 	Demander      string `json:"demander"`
+// 	TargetTableID string `json:"target_table_id"` 1
+// 	Service       int    `json:"service"` 0
+// 	RequestTime   string `json:"request_time"` 2022-07-02 14:36
+// 	State         uint   `json:"state"` 0
+//  attributeID    attribute_id 1
+// }
 // POST
 func SendRequest(c *gin.Context) {
 	// A "Request" struct should be passed from the front end.
-	var reqStr string
+	raw, err := c.GetRawData()
+	fmt.Println(err)
+	var reqStr string = string(raw)
+
 	fmt.Println(c.Request)
 
-	_ = c.ShouldBindJSON(&reqStr)
+	// err := c.ShouldBindJSON(&reqStr)
+	// fmt.Println(err)
 
 	fmt.Println(reqStr)
 

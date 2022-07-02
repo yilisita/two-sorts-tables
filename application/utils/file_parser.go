@@ -165,7 +165,7 @@ func FormatEcwsFile(r io.Reader) []*model.Table {
 			Month:     month,
 			Area:      area,
 			Data:      data,
-			TableType: "0", // prod
+			TableType: "0", // ecws
 			Label:     labels,
 			Columns:   columns,
 		}

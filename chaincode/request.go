@@ -12,6 +12,7 @@ import (
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
 
+// TODO: pass ID from the server side, instead of deriving it within the chaincode
 // SmartContract provides functions for managing an Asset
 type SmartContract struct {
 	contractapi.Contract
@@ -40,10 +41,6 @@ var stateMapper = map[uint]string{
 	refused:   "已拒绝处理",
 	completed: "已完成",
 }
-
-const reqPrefix = "REQ-"
-
-var reqID = 1
 
 // 数据需求方发送请求的结构
 /*--- 七个字段 ----*/
@@ -121,12 +118,10 @@ func (b *BasicRequest) GetService() int {
 func (b *BasicRequest) ChangeState(s uint) {
 	b.State = s
 }
-func newReqID(id string) string {
-	return reqPrefix + id
-}
 
 // 用来购买字段的
 // OKOK
+// Do attach id to reqStr
 func (s *SmartContract) SendRequest(ctx contractapi.TransactionContextInterface, reqStr string) (string, error) {
 	request, err := ConvertRequest(reqStr)
 	if err != nil {
@@ -140,8 +135,6 @@ func (s *SmartContract) SendRequest(ctx contractapi.TransactionContextInterface,
 	}
 
 	request.SetDemander(demander)
-	request.SetID(newReqID(fmt.Sprint((reqID))))
-
 	log.Println(request)
 
 	requestJSON, err := json.Marshal(&request)
@@ -153,8 +146,7 @@ func (s *SmartContract) SendRequest(ctx contractapi.TransactionContextInterface,
 	if err != nil {
 		return "", err
 	}
-	reqID++
-	return fmt.Sprint(reqID - 1), nil
+	return request.GetID(), nil
 }
 
 // OK
@@ -224,7 +216,7 @@ func (s *SmartContract) HandleAll(ctx contractapi.TransactionContextInterface) (
 		if request.GetState() != pending {
 			continue
 		}
-		report, err := s.HandleSingle(ctx, request.GetID()) // "REQ-1"
+		report, err := s.handleSingle(ctx, request.GetID()) // "REQ-1"
 		if err != nil {
 			return nil, err
 		}
@@ -235,35 +227,12 @@ func (s *SmartContract) HandleAll(ctx contractapi.TransactionContextInterface) (
 
 // REQ-1
 // OK
-func (s *SmartContract) HandleSingle(ctx contractapi.TransactionContextInterface, requestID string) (interface{}, error) {
-	// 读取这个请求
-	reqID := requestID
-	requestJSON, err := ctx.GetStub().GetState(reqID)
+func (s *SmartContract) HandleSingle(ctx contractapi.TransactionContextInterface, requestID string) ([]interface{}, error) {
+	res, err := s.handleSingle(ctx, requestID)
 	if err != nil {
 		return nil, err
 	}
-	if requestJSON == nil {
-		return nil, fmt.Errorf("No such request.")
-	}
-
-	// 反序列化请求JSON => struct
-	request, err := ConvertRequest(string(requestJSON))
-	if err != nil {
-		return nil, err
-	}
-
-	// 如果已经解决了，则结束
-	if request.GetState() != pending {
-		return nil, fmt.Errorf("Unable to handle, status: %v", request.GetState())
-	}
-
-	targetTable, err := s.ReadMyTableByID(ctx, request.GetTargetTableID())
-	if err != nil {
-		return nil, err
-	}
-
-	return deriveReport(request, targetTable), nil
-
+	return []interface{}{res}, nil
 }
 
 // TODO: test
@@ -289,14 +258,16 @@ func (s *SmartContract) RefuseRequest(ctx contractapi.TransactionContextInterfac
 }
 
 // Ok
+// ***** When sending reports, do attach ids into the reportStr
 func (s *SmartContract) SendReport(ctx contractapi.TransactionContextInterface, reportStr string) error {
-	// 在private data 1上做了range query就不能在private data 2上做write，所有handleRequest和sendResponse必须分开定义
+	// 在private data 1上做了range query就不能在private data 2上做write，所以handleRequest和sendResponse必须分开定义
 	var reports interface{}
 	err := json.Unmarshal([]byte(reportStr), &reports)
 	if err != nil {
 		return err
 	}
 	rs := reports.([]interface{})
+
 	for _, v := range rs {
 		vJSON, err := json.Marshal(v)
 		if err != nil {
@@ -338,10 +309,9 @@ func (s *SmartContract) SendReport(ctx contractapi.TransactionContextInterface, 
 	return nil
 }
 
-/*
-func (s *SmartContract) HandleTableBuy(ctx contractapi.TransactionContextInterface, id string) (*TableRes, error) {
+func (s *SmartContract) handleSingle(ctx contractapi.TransactionContextInterface, requestID string) (interface{}, error) {
 	// 读取这个请求
-	reqID := newReqID(id)
+	reqID := requestID
 	requestJSON, err := ctx.GetStub().GetState(reqID)
 	if err != nil {
 		return nil, err
@@ -351,58 +321,24 @@ func (s *SmartContract) HandleTableBuy(ctx contractapi.TransactionContextInterfa
 	}
 
 	// 反序列化请求JSON => struct
-	var request Request
-	err = json.Unmarshal(requestJSON, &request)
+	request, err := ConvertRequest(string(requestJSON))
 	if err != nil {
 		return nil, err
 	}
+
 	// 如果已经解决了，则结束
-	if request.State != completed {
-		return nil, fmt.Errorf("Unable to handle, status: %v", request.State)
+	if request.GetState() != pending {
+		return nil, fmt.Errorf("Unable to handle, status: %v", request.GetState())
 	}
 
-	targetTable, err := s.ReadMyTableByID(ctx, request.TargetTableID)
+	targetTable, err := s.ReadMyTableByID(ctx, request.GetTargetTableID())
 	if err != nil {
 		return nil, err
 	}
 
-	var res = TableRes{
-		ID:      fmt.Sprint(resID),
-		Res:     targetTable,
-		ResType: "Table",
-	}
+	return deriveReport(request, *targetTable), nil
 
-	return &res, nil
 }
-
-func (s *SmartContract) HanldeAllTableBuy(ctx contractapi.TransactionContextInterface) ([]*TableRes, error) {
-	queryString := fmt.Sprintf(`{"selector":{"req_type":"%s"}}`, "table")
-	reqIterator, err := ctx.GetStub().GetQueryResult(queryString)
-	if err != nil {
-		return nil, err
-	}
-	defer reqIterator.Close()
-
-	var res []*TableRes
-	for reqIterator.HasNext() {
-		tmp, err := reqIterator.Next()
-		if err != nil {
-			return nil, err
-		}
-		var r Request
-		err = json.Unmarshal(tmp.Value, &r)
-		if err != nil {
-			return nil, err
-		}
-		tRes, err := s.HandleTableBuy(ctx, r.GetID())
-		if err != nil {
-			return nil, err
-		}
-		res = append(res, tRes)
-	}
-	return res, nil
-}
-*/
 
 // ID 和 TableRes
 func ConvertRequest(reqStr string) (Request, error) {
@@ -445,7 +381,6 @@ func deriveReport(r Request, t Table) Report {
 		if f, ok := serviceFucMapper[r.GetService()]; ok {
 			var res = f(t, r)
 			var ar = AttributeRes{
-				ID:          fmt.Sprint(resID),
 				ReqID:       r.GetID(),
 				TargetTable: getPublicTableFromPrivate(t),
 				Service:     serviceNameMapper[r.GetService()],
@@ -459,7 +394,6 @@ func deriveReport(r Request, t Table) Report {
 		if f, ok := serviceFucMapper[r.GetService()]; ok {
 			var res = f(t, r)
 			var ar = AttributeRes{
-				ID:          fmt.Sprint(resID),
 				ReqID:       r.GetID(),
 				TargetTable: getPublicTableFromPrivate(t),
 				Service:     serviceNameMapper[r.GetService()],
@@ -471,7 +405,6 @@ func deriveReport(r Request, t Table) Report {
 		}
 	case TableRequest:
 		var tr = TableRes{
-			ID:      fmt.Sprint(resID),
 			ReqID:   r.GetID(),
 			Res:     t,
 			ResType: table,

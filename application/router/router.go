@@ -2,7 +2,7 @@
  * @Author: Wen Jiajun
  * @Date: 2022-03-26 18:48:42
  * @LastEditors: Wen Jiajun
- * @LastEditTime: 2022-07-01 23:26:32
+ * @LastEditTime: 2022-07-01 23:38:09
  * @FilePath: \application\router\router.go
  * @Description:
  */
@@ -32,9 +32,11 @@ func InitRouter() *gin.Engine {
 	// app.LoadHTMLGlob("frontend/dist/index.html")
 
 	app.GET("/", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "hello, world",
-			"status":  200,
+		c.JSON(200, struct {
+			Status  uint   `json:"status"`
+			Message string `json:"message"`
+		}{
+			200, "Hello, world",
 		})
 		// c.HTML(http.StatusOK, "index.html", nil)
 	})

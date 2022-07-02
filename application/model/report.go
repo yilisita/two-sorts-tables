@@ -2,7 +2,7 @@
  * @Author: Wen Jiajun
  * @Date: 2022-06-30 00:22:17
  * @LastEditors: Wen Jiajun
- * @LastEditTime: 2022-07-01 22:10:03
+ * @LastEditTime: 2022-07-02 14:28:09
  * @FilePath: \application\model\report.go
  * @Description:
  */
@@ -11,7 +11,10 @@ package model
 import (
 	e "app/error"
 	"encoding/json"
+	"fmt"
 	"log"
+
+	"github.com/hyperledger/fabric-sdk-go/pkg/gateway"
 )
 
 type AttributeRes struct {
@@ -55,10 +58,23 @@ type PublicTableView struct {
 // func ReadReport(id string)
 
 func GetAllReports() ([]AttributeResView, error) {
-	res, err := Contract.EvaluateTransaction("GetAllReports")
+	txn, err := Contract.CreateTransaction(
+		"GetAllReports",
+		gateway.WithEndorsingPeers("peer0.org2.example.com:9051"),
+	)
+	if err != nil {
+		fmt.Printf("Failed to create transaction: %s\n", err)
+		return nil, e.TX_CREATION_ERROR
+	}
+
+	res, err := txn.Evaluate()
 	if err != nil {
 		log.Println(err)
 		return nil, e.TX_EVALUATION_ERROR
+	}
+
+	if res == nil {
+		return nil, e.NO_RES
 	}
 
 	var resRep []AttributeResView
@@ -71,9 +87,23 @@ func GetAllReports() ([]AttributeResView, error) {
 }
 
 func ReadPurchasedTable() ([]*Table, error) {
-	res, err := Contract.EvaluateTransaction("GetAllReports")
+	txn, err := Contract.CreateTransaction(
+		"ReadPurchasedTable",
+		gateway.WithEndorsingPeers("peer0.org2.example.com:9051"),
+	)
 	if err != nil {
-		return nil, e.TX_EVALUATION_ERROR
+		fmt.Printf("Failed to create transaction: %s\n", err)
+		return nil, e.TX_CREATION_ERROR
+	}
+
+	res, err := txn.Evaluate()
+	if err != nil {
+		fmt.Printf("Failed to read purchased table: %v\n", err)
+		return nil, err
+	}
+
+	if res == nil {
+		return nil, e.NO_RES
 	}
 
 	var resRep []*Table

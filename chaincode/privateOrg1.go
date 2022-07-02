@@ -24,9 +24,6 @@ const myCollection = "Org1PrivateCollection"
 // 	LYAccPowerConsumption        float64 `json:"ly_acc_power_consumption"`
 // }
 
-var id int = 0
-var indexID int = 0
-
 type PublicTable struct {
 	ID        string   `json:"id"`
 	Area      string   `json:"area"`
@@ -55,24 +52,23 @@ type Table struct {
 	TableType string      `json:"table_type"`
 }
 
-func (s *SmartContract) InsertATable(ctx contractapi.TransactionContextInterface, tableStr string) (int, error) {
+// Attach ID
+func (s *SmartContract) InsertATable(ctx contractapi.TransactionContextInterface, tableStr string) (string, error) {
 	var table Table
 	err := json.Unmarshal([]byte(tableStr), &table)
 	if err != nil {
-		return -1, err
+		return "", err
 	}
 
-	table.ID = fmt.Sprint(id)
 	tableJSON, err := json.Marshal(table)
 	if err != nil {
-		return -1, err
+		return "", err
 	}
 
-	err = ctx.GetStub().PutPrivateData(myCollection, fmt.Sprint(id), tableJSON)
+	err = ctx.GetStub().PutPrivateData(myCollection, table.ID, tableJSON)
 	if err != nil {
-		return -1, err
+		return "", err
 	}
-	thisID := id
 
 	var publicTable = PublicTable{
 		ID:        table.ID,
@@ -87,15 +83,15 @@ func (s *SmartContract) InsertATable(ctx contractapi.TransactionContextInterface
 
 	publicTableJSON, err := json.Marshal(publicTable)
 	if err != nil {
-		return -1, err
+		return "", err
 	}
 
 	err = ctx.GetStub().PutState(table.ID, publicTableJSON)
 	if err != nil {
-		return -1, err
+		return "", err
 	}
-	id++
-	return thisID, nil
+
+	return table.ID, nil
 }
 
 func (s *SmartContract) ReadPublicTableByID(ctx contractapi.TransactionContextInterface, tableID string) (*PublicTable, error) {
@@ -104,7 +100,7 @@ func (s *SmartContract) ReadPublicTableByID(ctx contractapi.TransactionContextIn
 		return nil, fmt.Errorf("failed to read from private collection: %v", err)
 	}
 	if tableJSON == nil {
-		return nil, fmt.Errorf("Table %s does not exist", tableID)
+		return nil, nil
 	}
 	var table PublicTable
 	err = json.Unmarshal(tableJSON, &table)
@@ -142,20 +138,22 @@ func (s *SmartContract) ReadAllPublicTable(ctx contractapi.TransactionContextInt
 
 // 读取表格数据，如果是加密的数据，那么读取的结果保持加密状态。
 // OK
-func (s *SmartContract) ReadMyTableByID(ctx contractapi.TransactionContextInterface, tableID string) (Table, error) {
+func (s *SmartContract) ReadMyTableByID(ctx contractapi.TransactionContextInterface, tableID string) (*Table, error) {
 	tableJSON, err := ctx.GetStub().GetPrivateData(myCollection, tableID)
 	if err != nil {
-		return Table{}, fmt.Errorf("failed to read from private collection: %v", err)
+		return nil, fmt.Errorf("failed to read from private collection: %v", err)
 	}
+
 	if tableJSON == nil {
-		return Table{}, fmt.Errorf("Table %s does not exist", tableID)
+		return nil, nil
 	}
+
 	var table Table
 	err = json.Unmarshal(tableJSON, &table)
 	if err != nil {
-		return Table{}, err
+		return nil, err
 	}
-	return table, nil
+	return &table, nil
 }
 
 // 内部函数，用来检测表格是否存在

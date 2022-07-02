@@ -2,7 +2,7 @@
  * @Author: Wen Jiajun
  * @Date: 2022-06-30 00:07:29
  * @LastEditors: Wen Jiajun
- * @LastEditTime: 2022-07-01 22:04:54
+ * @LastEditTime: 2022-07-02 15:20:55
  * @FilePath: \application\model\request.go
  * @Description:
  */
@@ -11,7 +11,10 @@ package model
 import (
 	e "app/error"
 	"encoding/json"
+	"fmt"
 	"log"
+
+	"github.com/hyperledger/fabric-sdk-go/pkg/gateway"
 )
 
 const REQ = "REQ-"
@@ -41,13 +44,23 @@ type TableRequest struct {
 	*BasicRequest
 }
 
+// TODO: ID
 func SendRequest(reqStr string) (string, error) {
+	var i interface{}
+	fmt.Println("ReqStr:", reqStr)
+	err := json.Unmarshal([]byte(reqStr), &i)
+	iMapper := i.(map[string]interface{})
+	iMapper["id"] = REQ + fmt.Sprint(ReqID)
+	reqJSON, err := json.Marshal(iMapper)
+	reqStr = string(reqJSON)
+
 	res, err := Contract.SubmitTransaction("SendRequest", reqStr)
 	if err != nil {
 		log.Println(err)
 		return "", e.TX_SUBMITION_ERROR
 	}
 
+	ReqID++
 	return string(res), e.SUCCESS
 }
 
@@ -73,17 +86,30 @@ func ReadAllRequest() ([]RequestView, error) {
 		log.Println(err)
 		return nil, e.TX_EVALUATION_ERROR
 	}
+
+	if res == nil {
+		return nil, e.NO_REQ
+	}
+
 	var resReq []RequestView
 	err = json.Unmarshal(res, &resReq)
 	if err != nil {
 		log.Println(err)
 		return nil, e.JSON_PARSE_ERROR
 	}
-	return resReq, nil
+	return resReq, e.SUCCESS
 }
 
 func HandleAll() (string, error) {
-	res, err := Contract.EvaluateTransaction("HandleAll")
+	txn, err := Contract.CreateTransaction(
+		"HandleAll",
+		gateway.WithEndorsingPeers("peer0.org1.example.com:7051"),
+	)
+	if err != nil {
+		fmt.Printf("Failed to create transaction: %s\n", err)
+		return "", e.TX_CREATION_ERROR
+	}
+	res, err := txn.Evaluate()
 	if err != nil {
 		log.Println(err)
 		return "", e.TX_EVALUATION_ERROR
@@ -98,21 +124,46 @@ func jsonSlice(s string) string {
 
 func HandleSingle(id string) (string, error) {
 	rid := newReqID(id)
-	res, err := Contract.EvaluateTransaction("HandleSingle", rid)
+	txn, err := Contract.CreateTransaction(
+		"HandleSingle",
+		gateway.WithEndorsingPeers("peer0.org1.example.com:7051"),
+	)
+	if err != nil {
+		fmt.Printf("Failed to create transaction: %s\n", err)
+		return "", e.TX_CREATION_ERROR
+	}
+	res, err := txn.Evaluate(rid)
 	if err != nil {
 		log.Println(err)
 		return "", e.TX_EVALUATION_ERROR
 	}
 
-	return jsonSlice(string(res)), e.SUCCESS
+	return string(res), e.SUCCESS
 }
 
+// []Report
 func SendReport(repStr string) error {
-	_, err := Contract.SubmitTransaction("SendReport", repStr)
+
+	fmt.Println("RepStr:", repStr)
+	var i interface{}
+	err := json.Unmarshal([]byte(repStr), &i)
+	fmt.Println(err)
+	iMapper := i.([]interface{})
+	thisID := ResID
+	for _, im := range iMapper {
+		m := im.(map[string]interface{})
+		m["id"] = fmt.Sprint(thisID)
+		thisID++
+	}
+	repJSON, err := json.Marshal(iMapper)
+	repStr = string(repJSON)
+
+	_, err = Contract.SubmitTransaction("SendReport", repStr)
 	if err != nil {
 		log.Println(err)
 		return e.TX_SUBMITION_ERROR
 	}
+	ResID = thisID
 	return e.SUCCESS
 }
 

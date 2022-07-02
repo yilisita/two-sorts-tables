@@ -2,7 +2,7 @@
  * @Author: Wen Jiajun
  * @Date: 2022-05-08 20:13:00
  * @LastEditors: Wen Jiajun
- * @LastEditTime: 2022-06-30 12:51:02
+ * @LastEditTime: 2022-07-02 12:51:33
  * @FilePath: \application\model\gateway.go
  * @Description:
  */
@@ -139,5 +139,9 @@ func InitFabric() error {
 		log.Println(err)
 		return err
 	}
+
+	GetReqID()
+	GetResID()
+	GetTableID()
 	return nil
 }
